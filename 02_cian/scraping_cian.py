@@ -56,7 +56,7 @@ def get_offer(item):
     else:
         offer["rooms"] = item['roomsCount']
     offer["floor"] = item['floorNumber']
-    offer["total_flo"] = item['building']['floorsCount']
+    offer["total_floor"] = item['building']['floorsCount']
 
     #     title = f"{item['roomsCount']}-к, {item['totalArea']} м2, {item['floorNumber']}/{item['building']['floorsCount']} этаж"
 
@@ -74,7 +74,15 @@ def check_database(item):
     result = cursor.fetchone()  # показывает что база данных получила
     if result is None:
         offer = get_offer(item)
+        cursor.execute("""
+            INSERT INTO offers
+            VALUES (NULL, :url, :offer_id, :data, :price, 
+                :address, :area, :rooms, :floor, :total_floor)
+        """, offer)
+        connection.commit()  # Соханение данных
+        print(f'Объявление {offer_id} добавлено в базу данных')
 
+    connection.close()
 
 
 def get_offers(data):
@@ -85,7 +93,6 @@ def get_offers(data):
             entities = key['value']['results']['offers']
             for item in entities:
                 check_database(item)
-                break
 
 
 def main():
