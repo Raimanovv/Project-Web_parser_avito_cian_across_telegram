@@ -10,25 +10,30 @@ from app.realty import check_database
 options = webdriver.ChromeOptions()
 options.add_argument("start-maximized")
 
-# options.add_argument("--headless")
+options.add_argument("--headless")
 
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
-driver = webdriver.Chrome(options=options)
 
-stealth(driver,
-        languages=["en-US", "en"],
-        vendor="Google Inc.",
-        platform="Win32",
-        webgl_vendor="Intel Inc.",
-        renderer="Intel Iris OpenGL Engine",
-        fix_hairline=True,
-        )
+def driver_func():
+    driver = webdriver.Chrome(options=options)
+
+    stealth(driver,
+            languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Win32",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+            )
+
+    return driver
 
 
 # !!! get_attribute('textContent')
 def get_json(url):
+    driver = driver_func()
     driver.get(url)
     script = driver.find_element(By.XPATH, '/html/body/script[4]')
     data = script.get_attribute('textContent').split('concat(')[1].strip()[:-2]
@@ -53,7 +58,7 @@ def get_offer(item):
     offer["address"] = item['geo']['userInput']
     offer["area"] = item['totalArea']
     if item['roomsCount'] is None:
-        offer["rooms"] = item['flatType']
+        offer["rooms"] = item['flatType'] + '-r. rdfhnbhf'
     else:
         offer["rooms"] = item['roomsCount']
     offer["floor"] = item['floorNumber']
@@ -84,4 +89,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        time.sleep(20)

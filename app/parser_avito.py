@@ -11,21 +11,42 @@ from app.realty import check_database
 options = webdriver.ChromeOptions()
 options.add_argument("start-maximized")
 
-# options.add_argument("--headless")
+options.add_argument("--headless")
 
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
+
+def driver_func():
+    driver = webdriver.Chrome(options=options)
+
+    stealth(driver,
+            languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Win32",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+            )
+
+    return driver
+
+
 driver = webdriver.Chrome(options=options)
 
-stealth(driver,
-        languages=["en-US", "en"],
-        vendor="Google Inc.",
-        platform="Win32",
-        webgl_vendor="Intel Inc.",
-        renderer="Intel Iris OpenGL Engine",
-        fix_hairline=True,
-        )
+
+# !!! get_attribute('textContent')
+def get_json(url):
+    driver = driver_func()
+    driver.get(url)
+    script = driver.find_element(By.XPATH, '/html/body/script[1]')
+    jsontext = script.get_attribute('textContent').split(';')[0].split('=')[-1].strip()[1:-1]  # Извлечение JSON из HTML
+    jsontext = unquote(jsontext)
+    data = json.loads(jsontext)
+    time.sleep(2)
+    driver.quit()
+
+    return data
 
 
 def get_offer(item):
@@ -59,19 +80,6 @@ def get_offer(item):
     return offer
 
 
-# !!! get_attribute('textContent')
-def get_json(url):
-    driver.get(url)
-    script = driver.find_element(By.XPATH, '/html/body/script[1]')
-    jsontext = script.get_attribute('textContent').split(';')[0].split('=')[-1].strip()[1:-1]  # Извлечение JSON из HTML
-    jsontext = unquote(jsontext)
-    data = json.loads(jsontext)
-    time.sleep(2)
-    driver.quit()
-
-    return data
-
-
 def get_offers(data):
     offers = list()
 
@@ -91,4 +99,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        time.sleep(20)
