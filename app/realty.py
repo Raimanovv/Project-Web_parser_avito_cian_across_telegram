@@ -1,5 +1,6 @@
 import sqlite3
 
+
 def check_database(offer):
     offer_id = offer["offer_id"]
 

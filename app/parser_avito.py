@@ -1,11 +1,12 @@
-from selenium import webdriver
-from selenium_stealth import stealth
-from selenium.webdriver.common.by import By
-from urllib.parse import unquote
-from datetime import datetime
+import sqlite3
 import json
 import time
-import sqlite3
+from datetime import datetime
+from urllib.parse import unquote
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium_stealth import stealth
+from app.realty import check_database
 
 options = webdriver.ChromeOptions()
 options.add_argument("start-maximized")
@@ -58,25 +59,6 @@ def get_offer(item):
     return offer
 
 
-def check_database(item):
-    offer_id = item['id']
-    with sqlite3.connect('../db/realty.db') as connection:
-        cursor = connection.cursor()
-        cursor.execute("""
-                SELECT offer_id FROM offers WHERE offer_id = (?)
-            """, (offer_id,))  # !
-        result = cursor.fetchone()  # показывает что база данных получила
-        if result is None:
-            offer = get_offer(item)
-            cursor.execute("""
-                    INSERT INTO offers
-                    VALUES (NULL, :url, :offer_id, :data, :price, 
-                        :address, :area, :rooms, :floor, :total_floor)
-                """, offer)
-            connection.commit()  # Сохранение данных
-            print(f'Объявление {offer_id} добавлено в базу данных')
-
-
 # !!! get_attribute('textContent')
 def get_json(url):
     driver.get(url)
@@ -98,7 +80,8 @@ def get_offers(data):
             items = data[key]['data']['catalog']['items']
             for item in items:
                 if "item" in item["type"]:
-                    check_database(item)
+                    offer = get_offer(item)
+                    check_database(offer)
 
 
 def main():

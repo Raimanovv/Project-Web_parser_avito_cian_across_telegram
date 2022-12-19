@@ -1,10 +1,11 @@
-from selenium import webdriver
-from selenium_stealth import stealth
-from selenium.webdriver.common.by import By
-from datetime import datetime
+import sqlite3
 import json
 import time
-import sqlite3
+from datetime import datetime
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium_stealth import stealth
+from app.realty import check_database
 
 options = webdriver.ChromeOptions()
 options.add_argument("start-maximized")
@@ -57,32 +58,9 @@ def get_offer(item):
         offer["rooms"] = item['roomsCount']
     offer["floor"] = item['floorNumber']
     offer["total_floor"] = item['building']['floorsCount']
-
     #     title = f"{item['roomsCount']}-к, {item['totalArea']} м2, {item['floorNumber']}/{item['building']['floorsCount']} этаж"
 
     return offer
-
-
-def check_database(item):
-    offer_id = item['id']
-
-    connection = sqlite3.connect('../db/realty.db')  # подключаемся к bd
-    cursor = connection.cursor()
-    cursor.execute("""
-        SELECT offer_id FROM offers WHERE offer_id = (?)
-    """, (offer_id,))  # !
-    result = cursor.fetchone()  # показывает что база данных получила
-    if result is None:
-        offer = get_offer(item)
-        cursor.execute("""
-            INSERT INTO offers
-            VALUES (NULL, :url, :offer_id, :data, :price, 
-                :address, :area, :rooms, :floor, :total_floor)
-        """, offer)
-        connection.commit()  # Соханение данных
-        print(f'Объявление {offer_id} добавлено в базу данных')
-
-    connection.close()
 
 
 def get_offers(data):
@@ -92,13 +70,15 @@ def get_offers(data):
         if 'initialState' in key['key']:
             entities = key['value']['results']['offers']
             for item in entities:
-                check_database(item)
+                offer = get_offer(item)
+                check_database(offer)
 
 
 def main():
     url = "https://kazan.cian.ru/cat.php?deal_type=rent&engine_version=2&is_by_homeowner=1&offer_type=flat&region=4777&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room7=1&room9=1&sort=creation_date_desc&type=4"
     data = get_json(url)
     offers = get_offers(data)
+
     # with open('f.json', 'w', encoding='utf-8') as f:
     #     json.dump(data, f, ensure_ascii=False)
 
