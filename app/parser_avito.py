@@ -86,6 +86,7 @@ def get_offers(data):
     for key in data:
         if 'single-page' in key:
             items = data[key]['data']['catalog']['items']
+            items = reversed(items)
             for item in items:
                 if "item" in item["type"]:
                     offer = get_offer(item)

@@ -73,6 +73,7 @@ def get_offers(data):
     for key in data:
         if 'initialState' in key['key']:
             entities = key['value']['results']['offers']
+            entities = reversed(entities)
             for item in entities:
                 offer = get_offer(item)
                 check_database(offer)
